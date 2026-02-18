@@ -2,224 +2,65 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Node.js AI Lab</title>
+    <title>Node.js AI Lab: Hub</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #e0e0e0; max-width: 900px; margin: auto; padding: 40px 20px; }
-       <nav style="text-align: center; margin-bottom: 20px;">
-    <a href="index.html" style="color: #0d6efd; margin-right: 20px; font-weight: bold;">Basic Missions</a>
-    <a href="other.html" style="color: #e0e0e0; text-decoration: none;">Advanced Lab</a>
-</nav> 
-        h1 { color: #0d6efd; text-align: center; margin-bottom: 10px; }
-        .myStatus { text-align: center; margin-bottom: 30px; font-weight: bold; padding: 10px; border-radius: 8px; background: #1e1e1e; }
-        .myGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .myCard { background: #1e1e1e; padding: 20px; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; }
-        .myCard h3 { margin-top: 0; color: #4ec9b0; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .myBadge { background: #333; color: #9cdcfe; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; float: right; }
-        .myTerminal { 
-            background: #000; color: #d4d4d4; padding: 12px; border-radius: 6px; 
-            font-family: 'Cascadia Code', monospace; height: 120px; overflow-y: auto; 
-            white-space: pre-wrap; font-size: 0.85rem; margin-top: 15px; border: 1px solid #222;
+        body { font-family: sans-serif; background: #121212; color: #e0e0e0; max-width: 800px; margin: auto; padding: 40px 20px; }
+        .myCard { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; margin-top: 20px; }
+        .myNav { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
+        .myNavLink { 
+            background: #252526; color: #4ec9b0; padding: 20px; border-radius: 8px; 
+            text-decoration: none; border: 1px solid #333; text-align: center; transition: 0.3s;
         }
-        .myBtn { 
-            background: #0d6efd; color: white; border: none; padding: 10px; 
-            border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;
-        }
-        .myBtn:hover { background: #0b5ed7; }
-        .myBtn:disabled { background: #444; cursor: not-allowed; color: #888; }
-        @media (max-width: 700px) { .myGrid { grid-template-columns: 1fr; } }
+        .myNavLink:hover { background: #0d6efd; color: white; transform: translateY(-3px); }
+        .myTerminal { background: #000; color: #d4d4d4; padding: 15px; border-radius: 6px; font-family: monospace; margin-top: 15px; min-height: 50px; }
+        .myBtn { background: #0d6efd; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        .myBtn:disabled { background: #444; }
     </style>
 </head>
 <body>
 
-    <h1>🚀 Node.js Browser Lab</h1>
-    <div class="myStatus" id="myStatusText">Checking Security Headers...</div>
+    <h1 style="color: #0d6efd;">🚀 Node.js Browser Hub</h1>
+    <p id="myStatus">Checking environment...</p>
 
-    <div class="myGrid">
-        <div class="myCard">
-            <h3>System Explorer <span class="myBadge">os</span></h3>
-            <p>Read the virtual hardware specs of this container.</p>
-            <button class="myBtn" id="btn1" onclick="myRunSystemStats()" disabled>Run System Check</button>
-            <div class="myTerminal" id="term1">Ready...</div>
-        </div>
+    <div class="myCard">
+        <h3>Starter: Hello World</h3>
+        <p>Verify the virtual engine is online before entering the labs.</p>
+        <button class="myBtn" id="myRunBtn" onclick="myRunHello()" disabled>Run Hello World</button>
+        <div class="myTerminal" id="myTerm">Ready...</div>
+    </div>
 
-        <div class="myCard">
-            <h3>Secret Keeper <span class="myBadge">crypto</span></h3>
-            <p>Generate a secure SHA-256 hash of a string.</p>
-            <button class="myBtn" id="btn2" onclick="myRunCryptoDemo()" disabled>Hash Password</button>
-            <div class="myTerminal" id="term2">Ready...</div>
-        </div>
-
-        <div class="myCard">
-            <h3>File Architect <span class="myBadge">fs</span></h3>
-            <p>Create a directory and share files between processes.</p>
-            <button class="myBtn" id="btn3" onclick="myRunFileSystemDemo()" disabled>Run FS Test</button>
-            <div class="myTerminal" id="term3">Ready...</div>
-        </div>
-
-        <div class="myCard">
-            <h3>The Cow Says <span class="myBadge">npm</span></h3>
-            <p>Install the 'cowsay' package and execute it.</p>
-            <button class="myBtn" id="btn4" onclick="myRunNpmDemo()" disabled>Install & Run</button>
-            <div class="myTerminal" id="term4">Ready...</div>
-        </div>
-
-        <div class="myCard">
-            <h3>URL Parser <span class="myBadge">url</span></h3>
-            <p>Deconstruct a URL into its functional parts.</p>
-            <button class="myBtn" id="btn5" onclick="myRunUrlDemo()" disabled>Parse URL</button>
-            <div class="myTerminal" id="term5">Ready...</div>
-        </div>
-
-        <div class="myCard">
-            <h3>Path Resolver <span class="myBadge">path</span></h3>
-            <p>Normalize messy file paths into system paths.</p>
-            <button class="myBtn" id="btn6" onclick="myRunPathDemo()" disabled>Resolve Path</button>
-            <div class="myTerminal" id="term6">Ready...</div>
-        </div>
-
-        <div class="myCard">
-            <h3>Event Emitter <span class="myBadge">events</span></h3>
-            <p>Create a custom event listener and trigger it.</p>
-            <button class="myBtn" id="btn7" onclick="myRunEventsDemo()" disabled>Trigger Event</button>
-            <div class="myTerminal" id="term7">Ready...</div>
-        </div>
-
-        <div class="myCard">
-            <h3>Buffer Lab <span class="myBadge">buffer</span></h3>
-            <p>Convert text to Hex and Base64 binary formats.</p>
-            <button class="myBtn" id="btn8" onclick="myRunBufferDemo()" disabled>Convert Buffer</button>
-            <div class="myTerminal" id="term8">Ready...</div>
-        </div>
+    <div class="myNav">
+        <a href="other.html" class="myNavLink">🧪 Advanced Lab<br><small>Servers & Shell Commands</small></a>
+        <a href="vision.html" class="myNavLink">👁️ Vision AI<br><small>YOLO & Image Processing</small></a>
+        <a href="data.html" class="myNavLink">📊 Data Science<br><small>Math & Buffer Analysis</small></a>
+        <a href="chat.html" class="myNavLink">💬 Network Lab<br><small>Chat & URL Parsing</small></a>
+        <a href="files.html" class="myNavLink">📂 File Manager<br><small>Archiving & Persistence</small></a>
     </div>
 
     <script type="module">
         import { WebContainer } from 'https://unpkg.com/@webcontainer/api@1.1.8/dist/index.js';
-
         let myWebContainer;
-        const myStatusEl = document.getElementById('myStatusText');
-        const myAllButtons = document.querySelectorAll('.myBtn');
 
-        // Shared execution function
-        async function myRunScript(myCode, myTerminalId) {
-            const myTerminal = document.getElementById(myTerminalId);
-            myTerminal.innerText = "> Executing...";
-            
-            // Write the code to the virtual disk
-            await myWebContainer.fs.writeFile('/run.js', myCode);
-            
-            // Spawn the node process
-            const myProcess = await myWebContainer.spawn('node', ['run.js']);
-            
-            // Pipe output to terminal
+        window.myRunHello = async () => {
+            const myTerm = document.getElementById('myTerm');
+            myTerm.innerText = "> Running...";
+            await myWebContainer.fs.writeFile('/hello.js', "console.log('Hello from the Node Engine!')");
+            const myProcess = await myWebContainer.spawn('node', ['hello.js']);
             myProcess.output.pipeTo(new WritableStream({
-                write(myData) { 
-                    myTerminal.innerText = myData; // Use '=' to keep it clean or '+=' to append
-                }
+                write(myData) { myTerm.innerText = myData; }
             }));
-            
-            await myProcess.exit;
-        }
-
-        // Logic for each mission
-window.myRunSystemStats = () => {
-    myRunScript(`
-        const os = require('os');
-        // We wrap os.totalmem() in Number() to avoid the BigInt NaN error
-        const myTotalRam = Number(os.totalmem());
-        const myFreeRam = Number(os.freemem());
-        
-        console.log('Platform: ' + os.platform());
-        console.log('CPU Cores: ' + os.cpus().length);
-        console.log('Total RAM: ' + (myTotalRam / 1024 / 1024).toFixed(0) + ' MB');
-        console.log('Free RAM: ' + (myFreeRam / 1024 / 1024).toFixed(0) + ' MB');
-    `, 'term1');
-};
-
-        window.myRunCryptoDemo = () => {
-            myRunScript(`
-                const crypto = require('crypto');
-                const myHash = crypto.createHash('sha256').update('Student123').digest('hex');
-                console.log('Text: Student123\\nHash: ' + myHash);
-            `, 'term2');
         };
 
-        window.myRunFileSystemDemo = async () => {
-            const myCode = `
-                const fs = require('fs');
-                if (!fs.existsSync('myProject')) fs.mkdirSync('myProject');
-                fs.writeFileSync('myProject/test.txt', 'Shared Data');
-                console.log('Program 1: Wrote to myProject/test.txt\\n' + 
-                            'Program 2 Read: ' + fs.readFileSync('myProject/test.txt', 'utf8'));
-            `;
-            myRunScript(myCode, 'term3');
-        };
-
-        window.myRunNpmDemo = async () => {
-            const myTerminal = document.getElementById('term4');
-            myTerminal.innerText = "> Installing cowsay...";
-            const myInstall = await myWebContainer.spawn('npm', ['install', 'cowsay']);
-            await myInstall.exit;
-            
-            myRunScript(`
-                const cowsay = require('cowsay');
-                console.log(cowsay.say({ text: "Browser Node Rocks!", e: "^^" }));
-            `, 'term4');
-        };
-
-        window.myRunUrlDemo = () => {
-            myRunScript(`
-                const url = require('url');
-                const myParsed = url.parse('https://render.com/docs?plan=free', true);
-                console.log('Host: ' + myParsed.host + '\\nPath: ' + myParsed.pathname + '\\nPlan: ' + myParsed.query.plan);
-            `, 'term5');
-        };
-
-        window.myRunPathDemo = () => {
-            myRunScript(`
-                const path = require('path');
-                const myPath = path.join('home', 'user', 'ai_lab.js');
-                console.log('Joined Path: ' + myPath + '\\nExt: ' + path.extname(myPath));
-            `, 'term6');
-        };
-
-        window.myRunEventsDemo = () => {
-            myRunScript(`
-                const EventEmitter = require('events');
-                const myEmitter = new EventEmitter();
-                myEmitter.on('ping', () => console.log('Pong! Event Received.'));
-                myEmitter.emit('ping');
-            `, 'term7');
-        };
-
-        window.myRunBufferDemo = () => {
-            myRunScript(`
-                const myBuf = Buffer.from('Hello');
-                console.log('String: Hello\\nHex: ' + myBuf.toString('hex') + '\\nBase64: ' + myBuf.toString('base64'));
-            `, 'term8');
-        };
-
-        // Initialize the WebContainer
-        async function myBootLab() {
+        async function myInit() {
             if (!window.crossOriginIsolated) {
-                myStatusEl.style.color = "#f44747";
-                myStatusEl.innerText = "❌ Security Error: Missing COOP/COEP Headers!";
+                document.getElementById('myStatus').innerHTML = "❌ <b style='color:red'>Security Headers Missing!</b> Node cannot boot.";
                 return;
             }
-
-            try {
-                myStatusEl.innerText = "🌀 Connecting to Virtual Node Engine...";
-                myWebContainer = await WebContainer.boot();
-                myStatusEl.style.color = "#4ec9b0";
-                myStatusEl.innerText = "✅ Lab Connected: Node.js " + (await myWebContainer.spawn('node', ['-v'])).output.pipeTo(new WritableStream({write(d){myStatusEl.innerText += d}}));
-                myStatusEl.innerText = "✅ Lab Connected & Ready";
-                myAllButtons.forEach(myBtn => myBtn.disabled = false);
-            } catch (myErr) {
-                myStatusEl.innerText = "❌ Boot Failed: " + myErr.message;
-            }
+            myWebContainer = await WebContainer.boot();
+            document.getElementById('myStatus').innerText = "✅ Engine Online";
+            document.getElementById('myRunBtn').disabled = false;
         }
-
-        myBootLab();
+        myInit();
     </script>
 </body>
 </html>
