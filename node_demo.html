@@ -1,0 +1,22 @@
+import { WebContainer } from '@webcontainer/api';
+
+async function myStartNode() {
+    // 1. Check if the browser is 'isolated' enough
+    if (!window.crossOriginIsolated) {
+        console.error("❌ Browser is not cross-origin isolated. WebContainers will fail.");
+        return;
+    }
+
+    // 2. Boot the container
+    const myWebContainer = await WebContainer.boot();
+    console.log("🚀 Node Container is live!");
+
+    // 3. Create a simple file
+    await myWebContainer.fs.writeFile('myApp.js', `console.log('Hello from inside the browser!')`);
+
+    // 4. Run it
+    const myProcess = await myWebContainer.spawn('node', ['myApp.js']);
+    myProcess.output.pipeTo(new WritableStream({
+        write(myData) { console.log("📦 Container Output:", myData); }
+    }));
+}
