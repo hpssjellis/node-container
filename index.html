@@ -118,14 +118,19 @@
         }
 
         // Logic for each mission
-        window.myRunSystemStats = () => {
-            myRunScript(`
-                const os = require('os');
-                console.log('Platform: ' + os.platform());
-                console.log('CPU Cores: ' + os.cpus().length);
-                console.log('Total RAM: ' + (Number(os.totalmem()) / 1024 / 1024).toFixed(0) + ' MB');
-            `, 'term1');
-        };
+window.myRunSystemStats = () => {
+    myRunScript(`
+        const os = require('os');
+        // We wrap os.totalmem() in Number() to avoid the BigInt NaN error
+        const myTotalRam = Number(os.totalmem());
+        const myFreeRam = Number(os.freemem());
+        
+        console.log('Platform: ' + os.platform());
+        console.log('CPU Cores: ' + os.cpus().length);
+        console.log('Total RAM: ' + (myTotalRam / 1024 / 1024).toFixed(0) + ' MB');
+        console.log('Free RAM: ' + (myFreeRam / 1024 / 1024).toFixed(0) + ' MB');
+    `, 'term1');
+};
 
         window.myRunCryptoDemo = () => {
             myRunScript(`
