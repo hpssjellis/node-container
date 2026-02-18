@@ -1,0 +1,15 @@
+<h3>Folder Architect</h3>
+<button class="myBtn" onclick="myRunFiles()">Build Nested Folders</button>
+<div class="myTerminal" id="termFiles"></div>
+
+<script type="module">
+    window.myRunFiles = async () => {
+        const myCode = `
+            const fs = require('fs');
+            if(!fs.existsSync('myLab')) fs.mkdirSync('myLab');
+            fs.writeFileSync('myLab/note.txt', 'Persistence Test');
+            console.log('Created: /myLab/note.txt\\nContent: ' + fs.readFileSync('myLab/note.txt'));
+        `;
+        // ... execute logic ...
+    };
+</script>
