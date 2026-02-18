@@ -1,9 +1,9 @@
 services:
   - type: web
     name: student-ai-hub
-    runtime: static
+    runtime: static # This tells Render it is a Static Site, not a Node server
     buildCommand: "" 
-    publishPath: "./"
+    publishPath: "./" # or the folder where your index.html lives
     headers:
       - path: /*
         headers:
