@@ -1,22 +1,111 @@
-import { WebContainer } from '@webcontainer/api';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node Container Demo</title>
+    <style>
+        body { font-family: monospace; background: #1e1e1e; color: #d4d4d4; padding: 20px; }
+        #myTerminal { 
+            background: #000; 
+            border: 1px solid #333; 
+            padding: 15px; 
+            height: 300px; 
+            overflow-y: auto; 
+            white-space: pre-wrap;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .myStatus { color: #4ec9b0; margin-bottom: 10px; }
+        .myError { color: #f44747; }
+        .myBtn { 
+            background: #0d6efd; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .myBtn:disabled { background: #444; cursor: not-allowed; }
+    </style>
+</head>
+<body>
 
-async function myStartNode() {
-    // 1. Check if the browser is 'isolated' enough
-    if (!window.crossOriginIsolated) {
-        console.error("❌ Browser is not cross-origin isolated. WebContainers will fail.");
-        return;
-    }
+    <div class="myStatus" id="myStatusText">Checking Browser Security...</div>
+    
+    <div id="myTerminal">Welcome to the Browser Node Container. Wait for boot...</div>
 
-    // 2. Boot the container
-    const myWebContainer = await WebContainer.boot();
-    console.log("🚀 Node Container is live!");
+    <button class="myBtn" id="myRunBtn" onclick="myRunExampleNode()" disabled>Run 'Hello World' Script</button>
 
-    // 3. Create a simple file
-    await myWebContainer.fs.writeFile('myApp.js', `console.log('Hello from inside the browser!')`);
+    <script type="module">
+        import { WebContainer } from 'https://unpkg.com/@webcontainer/api@1.1.8/dist/index.js';
 
-    // 4. Run it
-    const myProcess = await myWebContainer.spawn('node', ['myApp.js']);
-    myProcess.output.pipeTo(new WritableStream({
-        write(myData) { console.log("📦 Container Output:", myData); }
-    }));
-}
+        let myWebContainerInstance;
+        const myTerminalEl = document.getElementById('myTerminal');
+        const myStatusEl = document.getElementById('myStatusText');
+        const myBtnEl = document.getElementById('myRunBtn');
+
+        // Helper to print to our "screen"
+        function myLogToTerminal(myText) {
+            myTerminalEl.innerText += `\n> ${myText}`;
+            myTerminalEl.scrollTop = myTerminalEl.scrollHeight;
+        }
+
+        async function myBootContainer() {
+            // 1. Safety Check for SharedArrayBuffer (Headers check)
+            if (!window.crossOriginIsolated) {
+                myStatusEl.className = "myError";
+                myStatusEl.innerText = "❌ Security Error: Cross-Origin Isolation NOT enabled. (Check Render Headers)";
+                myLogToTerminal("ERROR: This demo requires COOP/COEP headers to be set on the server.");
+                return;
+            }
+
+            try {
+                myStatusEl.innerText = "🌀 Booting Node.js Environment...";
+                
+                // 2. Start the container
+                myWebContainerInstance = await WebContainer.boot();
+                
+                myStatusEl.innerText = "✅ Node Container Online";
+                myLogToTerminal("WebContainer Booted Successfully.");
+                myBtnEl.disabled = false;
+
+            } catch (myErr) {
+                myStatusEl.innerText = "❌ Boot Failed";
+                myLogToTerminal(myErr.message);
+            }
+        }
+
+        // Function called by the button
+        window.myRunExampleNode = async function() {
+            myLogToTerminal("Creating file: myApp.js...");
+
+            // 3. Write a file to the virtual filesystem
+            await myWebContainerInstance.fs.writeFile('/myApp.js', `
+                const myGreeting = "Hello from the Browser's Node Container!";
+                console.log(myGreeting);
+                console.log("Current Time: " + new Date().toLocaleTimeString());
+            `);
+
+            myLogToTerminal("Executing 'node myApp.js'...");
+
+            // 4. Run the node process
+            const myProcess = await myWebContainerInstance.spawn('node', ['myApp.js']);
+
+            // 5. Listen for output
+            myProcess.output.pipeTo(new WritableStream({
+                write(myData) {
+                    myLogToTerminal(myData);
+                }
+            }));
+
+            // 6. Wait for process to finish
+            const myExitCode = await myProcess.exit;
+            myLogToTerminal(`Process finished with code: ${myExitCode}`);
+        }
+
+        // Start booting on page load
+        myBootContainer();
+    </script>
+</body>
+</html>
