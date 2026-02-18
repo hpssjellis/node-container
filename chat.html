@@ -1,0 +1,16 @@
+<h3>Event Emitter Chat Sim</h3>
+<button class="myBtn" onclick="myRunChat()">Simulate Event-Driven Chat</button>
+<div class="myTerminal" id="termChat"></div>
+
+<script type="module">
+    window.myRunChat = async () => {
+        const myCode = `
+            const Emitter = require('events');
+            const myChat = new Emitter();
+            myChat.on('message', (u, m) => console.log(u + ': ' + m));
+            myChat.emit('message', 'System', 'Chat Booted');
+            setTimeout(() => myChat.emit('message', 'User', 'Hello from WebContainer!'), 1000);
+        `;
+        // ... execute logic ...
+    };
+</script>
