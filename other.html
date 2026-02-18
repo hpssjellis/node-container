@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Node Lab</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: #e0e0e0; max-width: 900px; margin: auto; padding: 20px; }
+        .myNav { text-align: center; margin-bottom: 20px; }
+        .myNav a { color: #888; text-decoration: none; margin: 0 15px; }
+        .myNav a.active { color: #0d6efd; font-weight: bold; border-bottom: 2px solid #0d6efd; }
+        .myGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .myCard { background: #1e1e1e; padding: 15px; border-radius: 10px; border: 1px solid #333; }
+        .myTerminal { 
+            background: #000; color: #4ec9b0; padding: 10px; height: 120px; 
+            overflow-y: auto; font-family: monospace; font-size: 0.8rem; margin-top: 10px;
+        }
+        .myBtn { background: #198754; color: white; border: none; padding: 8px; width: 100%; border-radius: 5px; cursor: pointer; }
+        .myBtn:disabled { background: #444; }
+        iframe { width: 100%; height: 100px; background: white; border-radius: 5px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <nav class="myNav">
+        <a href="index.html">Basic Missions</a>
+        <a href="other.html" class="active">Advanced Lab</a>
+    </nav>
+
+    <h1 style="text-align: center;">🚀 Advanced Node Experiments</h1>
+    <p id="myStatus" style="text-align: center;">Booting Engine...</p>
+
+    <div class="myGrid">
+        <div class="myCard">
+            <h3>1. Web Server in Browser</h3>
+            <p>Boot an HTTP server and see the result in an Iframe!</p>
+            <button class="myBtn" id="btn1" onclick="myRunWebServer()" disabled>Start Server</button>
+            <iframe id="myPreview" style="display:none;"></iframe>
+            <div class="myTerminal" id="term1">Ready...</div>
+        </div>
+
+        <div class="myCard">
+            <h3>2. Chat Logic Sim</h3>
+            <p>A Node program acting as a message relay.</p>
+            <button class="myBtn" id="btn2" onclick="myRunChatSim()" disabled>Send Message</button>
+            <div class="myTerminal" id="term2">Ready...</div>
+        </div>
+
+        <div class="myCard">
+            <h3>3. File Explorer (ls)</h3>
+            <p>Run 'ls -la' to see the virtual hidden files.</p>
+            <button class="myBtn" id="btn3" onclick="myRunLsCommand()" disabled>List Files</button>
+            <div class="myTerminal" id="term3">Ready...</div>
+        </div>
+
+        <div class="myCard">
+            <h3>4. Markdown to HTML</h3>
+            <p>Convert raw markdown text into HTML code.</p>
+            <button class="myBtn" id="btn4" onclick="myRunMarkdown()" disabled>Convert</button>
+            <div class="myTerminal" id="term4">Ready...</div>
+        </div>
+
+        <div class="myCard">
+            <h3>5. Process Info</h3>
+            <p>See the Node Process ID and Uptime.</p>
+            <button class="myBtn" id="btn5" onclick="myRunProcess()" disabled>Get Info</button>
+            <div class="myTerminal" id="term5">Ready...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { WebContainer } from 'https://unpkg.com/@webcontainer/api@1.1.8/dist/index.js';
+
+        let myWebContainer;
+
+        async function myRunScript(myCode, myTerminalId) {
+            const myTerminal = document.getElementById(myTerminalId);
+            await myWebContainer.fs.writeFile('/run.js', myCode);
+            const myProcess = await myWebContainer.spawn('node', ['run.js']);
+            myProcess.output.pipeTo(new WritableStream({
+                write(myData) { myTerminal.innerText = myData; }
+            }));
+            return myProcess.exit;
+        }
+
+        // --- 1. THE WEB SERVER (The coolest one) ---
+        window.myRunWebServer = async () => {
+            const myCode = `
+                const http = require('http');
+                http.createServer((req, res) => {
+                    res.writeHead(200, { 'Content-Type': 'text/html' });
+                    res.end('<h1>Success!</h1><p>I am a Node server inside your browser.</p>');
+                }).listen(8080);
+                console.log('Server live on port 8080');
+            `;
+            await myWebContainer.fs.writeFile('/server.js', myCode);
+            await myWebContainer.spawn('node', ['server.js']);
+            
+            // WebContainer tells us when a port is ready
+            myWebContainer.on('server-ready', (myPort, myUrl) => {
+                document.getElementById('myPreview').style.display = 'block';
+                document.getElementById('myPreview').src = myUrl;
+                document.getElementById('term1').innerText = "Server listening at: " + myUrl;
+            });
+        };
+
+        // --- 2. CHAT SIMULATION ---
+        window.myRunChatSim = () => {
+            myRunScript(`
+                const messages = ["User: Hello!", "Bot: Hi there!", "User: Node in browser is cool."];
+                messages.forEach((m, i) => setTimeout(() => console.log(m), i * 500));
+            `, 'term2');
+        };
+
+        // --- 3. LS COMMAND ---
+        window.myRunLsCommand = async () => {
+            const myTerminal = document.getElementById('term3');
+            // We use 'ls -la' which is a standard Linux command
+            const myProcess = await myWebContainer.spawn('ls', ['-la']);
+            myProcess.output.pipeTo(new WritableStream({
+                write(myData) { myTerminal.innerText = myData; }
+            }));
+        };
+
+        // --- 4. MARKDOWN ---
+        window.myRunMarkdown = () => {
+            myRunScript(`
+                const myText = "# Hello World\\n**Bold text**";
+                const myHtml = myText.replace(/^# (.*$)/gim, '<h1>$1</h1>').replace(/\\*\\*(.*)\\*\\*/gim, '<b>$1</b>');
+                console.log('Markdown Input:\\n' + myText + '\\n\\nHTML Output:\\n' + myHtml);
+            `, 'term4');
+        };
+
+        // --- 5. PROCESS INFO ---
+        window.myRunProcess = () => {
+            myRunScript(`
+                console.log('PID: ' + process.pid);
+                console.log('Up Time: ' + process.uptime() + 's');
+                console.log('Versions: ' + JSON.stringify(process.versions, null, 2));
+            `, 'term5');
+        };
+
+        async function myInit() {
+            if (!window.crossOriginIsolated) return;
+            myWebContainer = await WebContainer.boot();
+            document.getElementById('myStatus').innerText = "✅ Advanced Lab Ready";
+            document.querySelectorAll('.myBtn').forEach(b => b.disabled = false);
+        }
+        myInit();
+    </script>
+</body>
+</html>
