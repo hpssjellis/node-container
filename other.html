@@ -146,6 +146,67 @@
             document.querySelectorAll('.myBtn').forEach(b => b.disabled = false);
         }
         myInit();
+
+
+        // --- 6. FILE COMPRESSOR ---
+window.myRunZlib = () => {
+    myRunScript(`
+        const zlib = require('zlib');
+        const input = 'This is a very long string that we want to compress!';
+        zlib.gzip(input, (err, buffer) => {
+            console.log('Original Size: ' + input.length);
+            console.log('Compressed Size: ' + buffer.length);
+            console.log('Hex Data: ' + buffer.toString('hex').substring(0, 20) + '...');
+        });
+    `, 'term6');
+};
+
+// --- 7. FILE WATCHER ---
+window.myRunWatcher = async () => {
+    const myTerm = document.getElementById('term7');
+    myTerm.innerText = "> Watching 'log.txt' for changes...";
+    
+    // This script stays running!
+    const myCode = `
+        const fs = require('fs');
+        console.log('Watcher active...');
+        fs.watch('log.txt', (eventType, filename) => {
+            console.log('File ' + filename + ' was ' + eventType + '!');
+        });
+        setTimeout(() => fs.writeFileSync('log.txt', 'Change!'), 1000);
+    `;
+    await myWebContainer.fs.writeFile('/watch.js', myCode);
+    await myWebContainer.fs.writeFile('/log.txt', 'Initial state');
+    const myProcess = await myWebContainer.spawn('node', ['watch.js']);
+    myProcess.output.pipeTo(new WritableStream({ write(d){ myTerm.innerText += "\\n" + d; }}));
+};
+
+// --- 8. ENVIRONMENT SPY ---
+window.myRunEnv = () => {
+    myRunScript(`
+        console.log('Current Folder: ' + process.cwd());
+        console.log('Node Path: ' + process.execPath);
+        console.log('Environment: ' + JSON.stringify(process.env, null, 2));
+    `, 'term8');
+};
+
+// --- 9. ENCRYPTION ---
+window.myRunCipher = () => {
+    myRunScript(`
+        const crypto = require('crypto');
+        const cipher = crypto.createCipher('aes192', 'a-password');
+        let encrypted = cipher.update('Top Secret Message', 'utf8', 'hex');
+        encrypted += cipher.final('hex');
+        console.log('Encrypted: ' + encrypted);
+    `, 'term9');
+};
+
+// --- 10. SYSTEM VERSIONS ---
+window.myRunVersions = async () => {
+    const myTerm = document.getElementById('term10');
+    const myProc = await myWebContainer.spawn('npm', ['--version']);
+    myProc.output.pipeTo(new WritableStream({ write(d){ myTerm.innerText = "NPM Version: " + d; }}));
+};
     </script>
 </body>
 </html>
