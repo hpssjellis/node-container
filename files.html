@@ -1,15 +1,59 @@
-<h3>Folder Architect</h3>
-<button class="myBtn" onclick="myRunFiles()">Build Nested Folders</button>
-<div class="myTerminal" id="termFiles"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Node Lab: File System</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: #e0e0e0; max-width: 800px; margin: auto; padding: 20px; }
+        .myNav { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .myNav a { color: #888; text-decoration: none; margin: 0 10px; }
+        .myCard { background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; }
+        .myTerminal { background: #000; color: #bd93f9; padding: 10px; min-height: 120px; overflow-y: auto; font-family: monospace; margin-top: 10px; border-radius: 5px; white-space: pre-wrap; }
+        .myBtn { background: #50fa7b; color: #282a36; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .myBtn:disabled { background: #444; }
+    </style>
+</head>
+<body>
+    <nav class="myNav">
+        <a href="index.html">Hub</a> | <a href="servers.html">Servers</a> | <a href="data.html">Data</a> | <a href="chat.html">Network</a> | <a href="files.html" style="color:#50fa7b">Files</a>
+    </nav>
 
-<script type="module">
-    window.myRunFiles = async () => {
-        const myCode = `
-            const fs = require('fs');
-            if(!fs.existsSync('myLab')) fs.mkdirSync('myLab');
-            fs.writeFileSync('myLab/note.txt', 'Persistence Test');
-            console.log('Created: /myLab/note.txt\\nContent: ' + fs.readFileSync('myLab/note.txt'));
-        `;
-        // ... execute logic ...
-    };
-</script>
+    <h2>📂 File Architect</h2>
+    <div class="myCard">
+        <p>Build directories and create persistent files in memory.</p>
+        <button class="myBtn" id="myRunBtn" onclick="myRunFiles()" disabled>Build File Structure</button>
+        <div class="myTerminal" id="termFiles">Waiting for engine...</div>
+    </div>
+
+    <script type="module">
+        import { WebContainer } from 'https://unpkg.com/@webcontainer/api@1.1.8/dist/index.js';
+        let myWebContainer;
+
+        window.myRunFiles = async () => {
+            const myTerminal = document.getElementById('termFiles');
+            myTerminal.innerText = "> Writing to disk...";
+            const myCode = `
+                const fs = require('fs');
+                if (!fs.existsSync('myLab')) {
+                    fs.mkdirSync('myLab');
+                }
+                fs.writeFileSync('myLab/student.txt', 'Class Assignment: Completed');
+                const myContent = fs.readFileSync('myLab/student.txt', 'utf8');
+                console.log('Successfully created /myLab/student.txt');
+                console.log('File Content: ' + myContent);
+            `;
+            await myWebContainer.fs.writeFile('/files.js', myCode);
+            const myProcess = await myWebContainer.spawn('node', ['files.js']);
+            myProcess.output.pipeTo(new WritableStream({ write(d) { myTerminal.innerText = d; }}));
+        };
+
+        async function myInit() {
+            if (!window.crossOriginIsolated) return;
+            myWebContainer = await WebContainer.boot();
+            document.getElementById('myRunBtn').disabled = false;
+            document.getElementById('termFiles').innerText = "Ready.";
+        }
+        myInit();
+    </script>
+</body>
+</html>
