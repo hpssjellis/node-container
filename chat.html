@@ -1,16 +1,62 @@
-<h3>Event Emitter Chat Sim</h3>
-<button class="myBtn" onclick="myRunChat()">Simulate Event-Driven Chat</button>
-<div class="myTerminal" id="termChat"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Node Lab: Chat & Events</title>
+    <style>
+        /* Shared Styles */
+        body { font-family: sans-serif; background: #121212; color: #e0e0e0; max-width: 800px; margin: auto; padding: 20px; }
+        .myNav { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .myNav a { color: #888; text-decoration: none; margin: 0 10px; }
+        .myCard { background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; }
+        .myTerminal { background: #000; color: #f1fa8c; padding: 10px; min-height: 120px; overflow-y: auto; font-family: monospace; margin-top: 10px; border-radius: 5px; white-space: pre-wrap; }
+        .myBtn { background: #ff79c6; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .myBtn:disabled { background: #444; }
+    </style>
+</head>
+<body>
+    <nav class="myNav">
+        <a href="index.html">Hub</a> | <a href="servers.html">Servers</a> | <a href="data.html">Data</a> | <a href="chat.html" style="color:#ff79c6">Network</a> | <a href="files.html">Files</a>
+    </nav>
 
-<script type="module">
-    window.myRunChat = async () => {
-        const myCode = `
-            const Emitter = require('events');
-            const myChat = new Emitter();
-            myChat.on('message', (u, m) => console.log(u + ': ' + m));
-            myChat.emit('message', 'System', 'Chat Booted');
-            setTimeout(() => myChat.emit('message', 'User', 'Hello from WebContainer!'), 1000);
-        `;
-        // ... execute logic ...
-    };
-</script>
+    <h2>💬 Event-Driven Chat Sim</h2>
+    <div class="myCard">
+        <p>Listen for "message" events and respond in real-time.</p>
+        <button class="myBtn" id="myRunBtn" onclick="myRunChat()" disabled>Start Chat Simulation</button>
+        <div class="myTerminal" id="termChat">Waiting for engine...</div>
+    </div>
+
+    <script type="module">
+        import { WebContainer } from 'https://unpkg.com/@webcontainer/api@1.1.8/dist/index.js';
+        let myWebContainer;
+
+        window.myRunChat = async () => {
+            const myTerminal = document.getElementById('termChat');
+            myTerminal.innerText = "> Initializing Chat System...";
+            const myCode = `
+                const EventEmitter = require('events');
+                const myMessenger = new EventEmitter();
+                
+                myMessenger.on('msg', (user, text) => {
+                    console.log('[' + user + ']: ' + text);
+                });
+
+                myMessenger.emit('msg', 'System', 'Chat Booted');
+                setTimeout(() => myMessenger.emit('msg', 'User1', 'Is Node running?'), 500);
+                setTimeout(() => myMessenger.emit('msg', 'System', 'Yes, inside a WebContainer!'), 1000);
+            `;
+            await myWebContainer.fs.writeFile('/chat.js', myCode);
+            const myProcess = await myWebContainer.spawn('node', ['chat.js']);
+            myProcess.output.pipeTo(new WritableStream({ write(d) { myTerminal.innerText += "\\n" + d; }}));
+        };
+
+        async function myInit() {
+            if (!window.crossOriginIsolated) return;
+            myWebContainer = await WebContainer.boot();
+            document.getElementById('myRunBtn').disabled = false;
+            document.getElementById('termChat').innerText = "Ready.";
+        }
+        myInit();
+    </script>
+</body>
+</html>
