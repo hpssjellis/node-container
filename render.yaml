@@ -1,27 +1,14 @@
 services:
-  # 1. This hosts your static pages (Dashboard, YOLO, etc.)
   - type: static
     name: student-ai-hub
     env: static
-    buildCommand: "" # Not needed for simple HTML
+    buildCommand: "" 
     publishPath: "./"
     headers:
       - path: /*
         headers:
+          # These two lines "unlock" the Node Container in your browser
           - key: Cross-Origin-Embedder-Policy
             value: require-corp
           - key: Cross-Origin-Opener-Policy
             value: same-origin
-          - key: Access-Control-Allow-Origin
-            value: "*"
-
-  # 2. This hosts your Node.js WebMCP Bridge
-  - type: web
-    name: mcp-bridge-server
-    env: node
-    plan: free
-    buildCommand: npm install
-    startCommand: node myServer.js
-    envVars:
-      - key: NODE_VERSION
-        value: 22.17.1
