@@ -1,13 +1,12 @@
 services:
-  - type: static
+  - type: web
     name: student-ai-hub
-    env: static
+    runtime: static
     buildCommand: "" 
     publishPath: "./"
     headers:
       - path: /*
         headers:
-          # These two lines "unlock" the Node Container in your browser
           - key: Cross-Origin-Embedder-Policy
             value: require-corp
           - key: Cross-Origin-Opener-Policy
