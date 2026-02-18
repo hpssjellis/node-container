@@ -123,7 +123,7 @@
                 const os = require('os');
                 console.log('Platform: ' + os.platform());
                 console.log('CPU Cores: ' + os.cpus().length);
-                console.log('Total RAM: ' + (os.totalmem() / 1024 / 1024).toFixed(0) + ' MB');
+                console.log('Total RAM: ' + (Number(os.totalmem()) / 1024 / 1024).toFixed(0) + ' MB');
             `, 'term1');
         };
 
