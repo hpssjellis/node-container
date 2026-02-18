@@ -1,0 +1,13 @@
+<h3>Binary Buffer Conversion</h3>
+<button class="myBtn" onclick="myRunBuffer()">Convert String to Hex/Base64</button>
+<div class="myTerminal" id="termData"></div>
+
+<script type="module">
+    // ... Boilerplate init as above ...
+    window.myRunBuffer = async () => {
+        const myCode = "const b = Buffer.from('NodeJS'); console.log('Hex:', b.toString('hex')); console.log('Base64:', b.toString('base64'));";
+        await myWebContainer.fs.writeFile('/data.js', myCode);
+        const myProc = await myWebContainer.spawn('node', ['data.js']);
+        myProc.output.pipeTo(new WritableStream({ write(d) { document.getElementById('termData').innerText = d; }}));
+    };
+</script>
