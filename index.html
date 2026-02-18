@@ -1,122 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Node.js AI Lab</title>
-    <style>
-        body { font-family: sans-serif; background: #f4f4f9; color: #333; max-width: 800px; margin: auto; padding: 20px; }
-        .myCard { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h1 { color: #0d6efd; text-align: center; }
-        .myTerminal { 
-            background: #1e1e1e; color: #4ec9b0; padding: 15px; 
-            border-radius: 8px; font-family: monospace; height: 150px; 
-            overflow-y: auto; white-space: pre-wrap; margin-top: 10px;
-        }
-        .myBtn { 
-            background: #0d6efd; color: white; border: none; padding: 10px 15px; 
-            border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%;
-        }
-        .myBtn:disabled { background: #ccc; cursor: not-allowed; }
-        .myBadge { background: #e2e3e5; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
-    </style>
-</head>
-<body>
+// --- Mission 4: NPM & child_process ---
+window.myRunNpmDemo = async () => {
+    const myTerminal = document.getElementById('term4');
+    myTerminal.innerText = "> Installing 'cowsay' via npm (this takes a moment)...";
+    
+    // Install the package inside the browser container!
+    const myInstall = await myWebContainer.spawn('npm', ['install', 'cowsay']);
+    await myInstall.exit;
 
-    <h1>🚀 My Node.js Lab</h1>
-    <p style="text-align: center;" id="myStatus">Booting Container...</p>
+    const myCode = `
+        const cowsay = require('cowsay');
+        console.log(cowsay.say({ text: "I am running in a browser!", e: "oO", T: "U " }));
+    `;
+    myRunScript(myCode, 'term4');
+};
 
-    <div class="myCard">
-        <h3>1. System Explorer <span class="myBadge">os module</span></h3>
-        <p>Ask Node.js to look at the "hardware" of this browser container.</p>
-        <button class="myBtn" id="btn1" onclick="myRunSystemStats()" disabled>Run System Check</button>
-        <div class="myTerminal" id="term1">Terminal ready...</div>
-    </div>
+// --- Mission 5: URL Parser ---
+window.myRunUrlDemo = () => {
+    const myCode = `
+        const url = require('url');
+        const myAddress = 'https://render.com/docs/blueprints?query=node#setup';
+        const myParsed = url.parse(myAddress, true);
+        console.log('Host:', myParsed.host);
+        console.log('Path:', myParsed.pathname);
+        console.log('Query:', myParsed.query);
+    `;
+    myRunScript(myCode, 'term5');
+};
 
-    <div class="myCard">
-        <h3>2. Secret Keeper <span class="myBadge">crypto module</span></h3>
-        <p>Turn the word "Password123" into a secure SHA-256 hash.</p>
-        <button class="myBtn" id="btn2" onclick="myRunCryptoDemo()" disabled>Generate Secure Hash</button>
-        <div class="myTerminal" id="term2">Terminal ready...</div>
-    </div>
+// --- Mission 6: Path Resolver ---
+window.myRunPathDemo = () => {
+    const myCode = `
+        const path = require('path');
+        const myResult = path.resolve('users', 'student', 'projects', 'ai_lab.js');
+        console.log('Resolved System Path:', myResult);
+        console.log('File Extension:', path.extname(myResult));
+    `;
+    myRunScript(myCode, 'term6');
+};
 
-    <div class="myCard">
-        <h3>3. File Architect <span class="myBadge">fs module</span></h3>
-        <p>Create a directory called <b>/myProject</b> and save a data file inside it.</p>
-        <button class="myBtn" id="btn3" onclick="myRunFileSystemDemo()" disabled>Build Filesystem</button>
-        <div class="myTerminal" id="term3">Terminal ready...</div>
-    </div>
+// --- Mission 7: Event Emitter ---
+window.myRunEventsDemo = () => {
+    const myCode = `
+        const EventEmitter = require('events');
+        const myEmitter = new EventEmitter();
+        
+        myEmitter.on('myAlarm', (myTime) => {
+            console.log('🔔 Alarm Triggered at: ' + myTime);
+        });
 
-    <script type="module">
-        import { WebContainer } from 'https://unpkg.com/@webcontainer/api@1.1.8/dist/index.js';
+        console.log('Setting alarm...');
+        myEmitter.emit('myAlarm', new Date().toLocaleTimeString());
+    `;
+    myRunScript(myCode, 'term7');
+};
 
-        let myWebContainer;
-        const myButtons = [document.getElementById('btn1'), document.getElementById('btn2'), document.getElementById('btn3')];
-
-        // Shared function to run a script and show output in a specific terminal
-        async function myRunScript(myCode, myTerminalId) {
-            const myTerminal = document.getElementById(myTerminalId);
-            myTerminal.innerText = "> Running script...";
-            
-            await myWebContainer.fs.writeFile('/run.js', myCode);
-            const myProcess = await myWebContainer.spawn('node', ['run.js']);
-            
-            myProcess.output.pipeTo(new WritableStream({
-                write(myData) { myTerminal.innerText += `\n${myData}`; }
-            }));
-            await myProcess.exit;
-        }
-
-        // Project 1 Logic
-        window.myRunSystemStats = () => {
-            const myCode = `
-                const os = require('os');
-                console.log('Platform:', os.platform());
-                console.log('CPU Cores:', os.cpus().length);
-                console.log('Total RAM:', (os.totalmem() / 1024 / 1024).toFixed(0), 'MB');
-            `;
-            myRunScript(myCode, 'term1');
-        };
-
-        // Project 2 Logic
-        window.myRunCryptoDemo = () => {
-            const myCode = `
-                const crypto = require('crypto');
-                const mySecret = 'Password123';
-                const myHash = crypto.createHash('sha256').update(mySecret).digest('hex');
-                console.log('Original:', mySecret);
-                console.log('SHA-256 Hash:', myHash);
-            `;
-            myRunScript(myCode, 'term2');
-        };
-
-        // Project 3 Logic
-        window.myRunFileSystemDemo = () => {
-            const myCode = `
-                const fs = require('fs');
-                if (!fs.existsSync('/myProject')) {
-                    fs.mkdirSync('/myProject');
-                    console.log('Created folder: /myProject');
-                }
-                fs.writeFileSync('/myProject/hello.txt', 'This file was created by Node!');
-                const myContent = fs.readFileSync('/myProject/hello.txt', 'utf-8');
-                console.log('File Read Result:', myContent);
-            `;
-            myRunScript(myCode, 'term3');
-        };
-
-        // Boot Everything
-        async function myInit() {
-            if (!window.crossOriginIsolated) {
-                document.getElementById('myStatus').innerHTML = "❌ <b style='color:red'>Security Error:</b> Headers not set!";
-                return;
-            }
-            myWebContainer = await WebContainer.boot();
-            document.getElementById('myStatus').innerText = "✅ Lab Connected & Ready";
-            myButtons.forEach(myBtn => myBtn.disabled = false);
-        }
-
-        myInit();
-    </script>
-</body>
-</html>
+// --- Mission 8: Buffer Lab ---
+window.myRunBufferDemo = () => {
+    const myCode = `
+        const myBuf = Buffer.from('Node.js is Awesome');
+        console.log('Hex Format:', myBuf.toString('hex'));
+        console.log('Base64 Format:', myBuf.toString('base64'));
+        console.log('Back to String:', myBuf.toString());
+    `;
+    myRunScript(myCode, 'term8');
+};
