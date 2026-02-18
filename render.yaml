@@ -1,13 +1,25 @@
 services:
   - type: web
     name: student-ai-hub
-    runtime: static # This tells Render it is a Static Site, not a Node server
+    runtime: static
     buildCommand: "" 
-    publishPath: "./" # or the folder where your index.html lives
-    headers:
-      - path: /*
-        headers:
-          - key: Cross-Origin-Embedder-Policy
-            value: require-corp
-          - key: Cross-Origin-Opener-Policy
-            value: same-origin
+    staticPublishPath: "./" # Note the 'static' prefix here
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    # In Blueprints, headers for static sites are often handled 
+    # via the 'headers' field differently or set in the dashboard.
+    # However, this is the most common accepted YAML format:
+    envVars:
+      - key: X_RENDER_HEADERS
+        value: |
+          [
+            {
+              "path": "/*",
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cross-Origin-Opener-Policy": "same-origin"
+              }
+            }
+          ]
