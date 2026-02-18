@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebMCP AI-Agent Playground</title>
+    <style>
+        body { font-family: system-ui; padding: 20px; line-height: 1.6; max-width: 800px; margin: auto; transition: background 0.5s; }
+        .myCard { border: 2px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 10px; background: white; }
+        #myCounterDisplay { font-size: 2em; font-weight: bold; color: #007bff; }
+        .myStatus { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h1>WebMCP AI-Agent Playground</h1>
+<p>If you are using an AI Agent browser, it can "see" these tools directly!</p>
+
+<div class="myCard">
+    <h3>1. Visitor Counter</h3>
+    <p>Total AI-requested pings: <span id="myCounterDisplay">0</span></p>
+</div>
+
+<div id="myOutputSection" class="myCard">
+    <h3>AI Agent Feedback</h3>
+    <p id="myAgentMessage">Waiting for an agent to take action...</p>
+</div>
+
+<script>
+let myVisitorCount = 0;
+
+async function myInitializeWebMCP() {
+    if (!navigator.modelContext) {
+        console.warn("WebMCP not available in this browser.");
+        return;
+    }
+
+    console.log("Registering WebMCP tools...");
+
+    // --- TOOL 1: VISITOR COUNTER ---
+    await navigator.modelContext.registerTool({
+        name: "myCountVisitor",
+        description: "Increments the visitor counter.",
+        inputSchema: { type: "object", properties: {} },
+        execute: async () => {
+            myVisitorCount++;
+            document.getElementById('myCounterDisplay').innerText = myVisitorCount;
+            document.getElementById('myAgentMessage').innerText = "AI triggered the counter!";
+            return { content: [{ type: "text", text: `Counter is now ${myVisitorCount}` }] };
+        }
+    });
+
+    // --- TOOL 2: THEME CHANGER ---
+    await navigator.modelContext.registerTool({
+        name: "mySetTheme",
+        description: "Changes the page background color.",
+        inputSchema: {
+            type: "object",
+            properties: { color: { type: "string" } }
+        },
+        execute: async (params) => {
+            const myColor = params.color || "white";
+            document.body.style.background = myColor;
+            return { content: [{ type: "text", text: `Background changed to ${myColor}` }] };
+        }
+    });
+
+    // --- TOOL 3: PAGE PURPOSE ---
+    await navigator.modelContext.registerTool({
+        name: "myGetPagePurpose",
+        description: "Returns an explanation of what this site is for.",
+        inputSchema: { type: "object", properties: {} },
+        execute: async () => {
+            return { content: [{ type: "text", text: "This site teaches students how WebMCP works in 2026!" }] };
+        }
+    });
+
+    // --- TOOL 4: AGENT MESSAGE ---
+    await navigator.modelContext.registerTool({
+        name: "myShowMessage",
+        description: "Displays a message from the agent.",
+        inputSchema: {
+            type: "object",
+            properties: { message: { type: "string" } }
+        },
+        execute: async (params) => {
+            const msg = params.message || "No message provided.";
+            document.getElementById('myAgentMessage').innerText = "AI says: " + msg;
+            return { content: [{ type: "text", text: "Message posted to the dashboard." }] };
+        }
+    });
+
+    console.log("WebMCP Tools Registered Successfully!");
+}
+
+myInitializeWebMCP();
+</script>
+
+</body>
+</html>
