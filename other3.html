@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Node Master Lab: 20 Lessons</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: #eee; padding: 20px; max-width: 1200px; margin: auto; }
+        .myHeader { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+        .myGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .myCard { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; }
+        .myCard h4 { margin: 0 0 10px 0; color: #4ec9b0; font-size: 0.9rem; text-transform: uppercase; }
+        .myCard p { font-size: 0.85rem; color: #bbb; margin-bottom: 15px; flex-grow: 1; }
+        .myTerminal { background: #000; color: #00ff00; padding: 8px; font-family: monospace; font-size: 0.75rem; height: 80px; overflow-y: auto; border-radius: 4px; margin-top: 10px; }
+        .myBtn { background: #0d6efd; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+        .myBtn:disabled { background: #444; cursor: not-allowed; }
+        .category-tag { font-size: 0.7rem; background: #333; padding: 2px 6px; border-radius: 10px; margin-left: 5px; color: #9cdcfe; }
+    </style>
+</head>
+<body>
+
+    <div class="myHeader">
+        <h1>🎓 Node.js & Linux Curriculum</h1>
+        <p id="myStatus">Booting Virtual Linux Environment...</p>
+        <nav><a href="index.html" style="color:#0d6efd">Back to Hub</a></nav>
+    </div>
+
+    <div class="myGrid" id="myLabGrid">
+        </div>
+
+    <script type="module">
+        import { WebContainer } from 'https://unpkg.com/@webcontainer/api@1.1.8/dist/index.js';
+        
+        let myWebContainer;
+        const myGrid = document.getElementById('myLabGrid');
+
+        // 20 Teaching Lessons
+        const myLessons = [
+            { id: 1, cat: "Linux", title: "Who Am I?", desc: "Check current user and working directory.", code: "console.log('User ID:', process.getuid?.() || 'web-user'); console.log('Dir:', process.cwd());" },
+            { id: 2, cat: "Linux", title: "List Files", desc: "Use 'ls -la' to see hidden system files.", isShell: true, command: "ls", args: ["-la"] },
+            { id: 3, cat: "Linux", title: "Environment", desc: "See system variables like PATH and LANG.", code: "console.log(process.env);" },
+            { id: 4, cat: "Node", title: "Argv", desc: "How Node reads command line arguments.", code: "process.argv.forEach((val, index) => console.log(index + ': ' + val));" },
+            { id: 5, cat: "Node", title: "Memory Heap", desc: "Check how much RAM Node is currently using.", code: "const used = process.memoryUsage(); console.log('Heap Used:', Math.round(used.heapUsed / 1024 / 1024), 'MB');" },
+            { id: 6, cat: "FS", title: "Write & Read", desc: "The basics of creating and opening a file.", code: "const fs = require('fs'); fs.writeFileSync('test.txt', 'Hello!'); console.log('Read:', fs.readFileSync('test.txt', 'utf8'));" },
+            { id: 7, cat: "FS", title: "Append", desc: "Adding data to a file without overwriting.", code: "const fs = require('fs'); fs.appendFileSync('log.txt', 'New Log Line\\n'); console.log(fs.readFileSync('log.txt', 'utf8'));" },
+            { id: 8, cat: "Node", title: "Timers", desc: "Understanding the Event Loop with setTimeout.", code: "console.log('Start'); setTimeout(() => console.log('End after 1s'), 1000);" },
+            { id: 9, cat: "Crypto", title: "UUID Gen", desc: "Generate a unique random ID string.", code: "const crypto = require('crypto'); console.log('ID:', crypto.randomUUID());" },
+            { id: 10, cat: "Crypto", title: "Password Salt", desc: "Creating a random salt for security.", code: "const crypto = require('crypto'); console.log('Salt:', crypto.randomBytes(16).toString('hex'));" },
+            { id: 11, cat: "Network", title: "DNS Lookup", desc: "How computers find IP addresses.", code: "const dns = require('dns'); dns.lookup('google.com', (err, add) => console.log('IP:', add));" },
+            { id: 12, cat: "Network", title: "Simple Server", desc: "The 5-line web server pattern.", code: "require('http').createServer((req, res) => res.end('OK')).listen(8080); console.log('Server on 8080');" },
+            { id: 13, cat: "Path", title: "Extension", desc: "How to extract a file type from a string.", code: "const path = require('path'); console.log('Ext:', path.extname('photo.jpg'));" },
+            { id: 14, cat: "Events", title: "Custom Events", desc: "Building an 'Alarm' system.", code: "const E = require('events'); const e = new E(); e.on('fire', () => console.log('🔥!')); e.emit('fire');" },
+            { id: 15, cat: "Buffer", title: "Base64", desc: "Encoding text for web transmission.", code: "console.log(Buffer.from('Hello').toString('base64'));" },
+            { id: 16, cat: "Linux", title: "Uptime", desc: "See how long the virtual OS has been on.", code: "const os = require('os'); console.log('Uptime:', os.uptime(), 'seconds');" },
+            { id: 17, cat: "Process", title: "Architecture", desc: "Check if system is x64 or arm.", code: "console.log('Arch:', process.arch); console.log('Platform:', process.platform);" },
+            { id: 18, cat: "FS", title: "Folder Check", desc: "Verify if a folder exists.", code: "const fs = require('fs'); console.log('Exists:', fs.existsSync('node_modules'));" },
+            { id: 19, cat: "Module", title: "Export Sim", desc: "Simulate a module export/require.", code: "const myMod = { greet: () => 'Hi!' }; console.log(myMod.greet());" },
+            { id: 20, cat: "Shell", title: "Clear Disk", desc: "Using 'rm' to delete a file.", isShell: true, command: "rm", args: ["test.txt"] }
+        ];
+
+        // Helper to run code
+        window.myExecute = async (myIndex) => {
+            const myLesson = myLessons[myIndex];
+            const myTerm = document.getElementById('term-' + myIndex);
+            myTerm.innerText = "> Executing...";
+
+            try {
+                if (myLesson.isShell) {
+                    const myProc = await myWebContainer.spawn(myLesson.command, myLesson.args);
+                    myProc.output.pipeTo(new WritableStream({ write(d) { myTerm.innerText = d || 'Success (No output)'; }}));
+                } else {
+                    await myWebContainer.fs.writeFile('/run.js', myLesson.code);
+                    const myProc = await myWebContainer.spawn('node', ['run.js']);
+                    myProc.output.pipeTo(new WritableStream({ write(d) { myTerm.innerText = d; }}));
+                }
+            } catch (err) {
+                myTerm.innerText = "Error: " + err.message;
+            }
+        };
+
+        // Build the UI
+        function myBuildUI() {
+            myLessons.forEach((l, i) => {
+                const myCard = document.createElement('div');
+                myCard.className = 'myCard';
+                myCard.innerHTML = `
+                    <h4>${l.title} <span class="category-tag">${l.cat}</span></h4>
+                    <p>${l.desc}</p>
+                    <button class="myBtn" id="btn-${i}" onclick="myExecute(${i})" disabled>Run Lesson</button>
+                    <div class="myTerminal" id="term-${i}">Waiting...</div>
+                `;
+                myGrid.appendChild(myCard);
+            });
+        }
+
+        async function myBoot() {
+            myBuildUI();
+            if (!window.crossOriginIsolated) {
+                document.getElementById('myStatus').innerText = "❌ Header Error";
+                return;
+            }
+            myWebContainer = await WebContainer.boot();
+            document.getElementById('myStatus').innerText = "✅ 20 Lessons Loaded & Ready";
+            document.querySelectorAll('.myBtn').forEach(b => b.disabled = false);
+        }
+
+        myBoot();
+    </script>
+</body>
+</html>
