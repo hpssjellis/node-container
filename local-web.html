@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Node Lab: Web Surfer</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: #e0e0e0; max-width: 900px; margin: auto; padding: 20px; }
+        .myNav { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .myNav a { color: #888; text-decoration: none; margin: 0 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .myCard { background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; }
+        .myTerminal { background: #000; color: #4ec9b0; padding: 10px; height: 120px; overflow-y: auto; font-family: monospace; margin-top: 10px; border-radius: 5px; white-space: pre-wrap; }
+        .myBtn { background: #0d6efd; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; margin-bottom: 10px; transition: 0.3s; }
+        .myBtn:hover { background: #0b5ed7; }
+        .myBtn:disabled { background: #444; cursor: not-allowed; }
+        iframe { width: 100%; height: 300px; border: 1px solid #333; border-radius: 5px; background: white; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+    <nav class="myNav">
+        <a href="index.html">Hub</a> | <a href="servers.html">Servers</a> | <a href="data.html" style="color:#0d6efd">Data</a> | <a href="chat.html">Network</a> | <a href="files.html">Files</a>
+    </nav>
+
+    <h2>🌐 WebContainer Browser Lab</h2>
+    
+    <div class="grid">
+        <div class="myCard">
+            <h3>1. Create Content</h3>
+            <button class="myBtn" id="btnPage1" onclick="makePage1()" disabled>Make page1.html</button>
+            <button class="myBtn" id="btnPage2" onclick="makePage2()" disabled>Make page2.html</button>
+            <button class="myBtn" id="btnIndex" onclick="makeIndex()" disabled>Make index.html (The Hub)</button>
+            
+            <h3>2. Launch Server</h3>
+            <button class="myBtn" id="btnRun" style="background:#198754" onclick="runServer()" disabled>🚀 Run Server & Surf</button>
+        </div>
+
+        <div class="myCard">
+            <h3>Status & Output</h3>
+            <div class="myTerminal" id="termData">Waiting for WebContainer boot...</div>
+            <iframe id="myPreview"></iframe>
+        </div>
+    </div>
+
+    <script type="module">
+        import { WebContainer } from 'https://unpkg.com/@webcontainer/api@1.1.8/dist/index.js';
+        let myWebContainer;
+
+        const log = (msg) => {
+            const term = document.getElementById('termData');
+            term.innerText += `\n> ${msg}`;
+            term.scrollTop = term.scrollHeight;
+        };
+
+        // --- BUTTON 1: PAGE 1 ---
+        window.makePage1 = async () => {
+            const html = `<html><body style="background:teal;color:white;padding:20px;"><h1>This is Page 1</h1><a href="/" style="color:yellow">Back to Index</a></body></html>`;
+            await myWebContainer.fs.writeFile('/page1.html', html);
+            log("Created page1.html");
+        };
+
+        // --- BUTTON 2: PAGE 2 ---
+        window.makePage2 = async () => {
+            const html = `<html><body style="background:maroon;color:white;padding:20px;"><h1>This is Page 2</h1><a href="/" style="color:yellow">Back to Index</a></body></html>`;
+            await myWebContainer.fs.writeFile('/page2.html', html);
+            log("Created page2.html");
+        };
+
+        // --- BUTTON 3: INDEX ---
+        window.makeIndex = async () => {
+            const html = `
+                <html>
+                <body style="font-family:sans-serif;padding:20px;text-align:center;">
+                    <h1>The Browser Hub</h1>
+                    <p>Navigate to your dynamic pages:</p>
+                    <div style="display:flex;gap:10px;justify-content:center;">
+                        <a href="/page1.html" style="padding:10px;background:#eee;border:1px solid #ccc;">Visit Page 1</a>
+                        <a href="/page2.html" style="padding:10px;background:#eee;border:1px solid #ccc;">Visit Page 2</a>
+                    </div>
+                </body>
+                </html>
+            `;
+            await myWebContainer.fs.writeFile('/index.html', html);
+            log("Created index.html with links.");
+        };
+
+        // --- BUTTON 4: RUN SERVER ---
+        window.runServer = async () => {
+            log("Starting Node server...");
+            const serverCode = `
+                const http = require('http');
+                const fs = require('fs');
+                const path = require('path');
+
+                http.createServer((req, res) => {
+                    let urlPath = req.url === '/' ? '/index.html' : req.url;
+                    let filePath = path.join(__dirname, urlPath);
+
+                    fs.readFile(filePath, (err, data) => {
+                        if (err) {
+                            res.writeHead(404);
+                            res.end('<h1>404 Not Found</h1><p>Did you click the "Make" buttons yet?</p><a href="/">Back to Index</a>');
+                        } else {
+                            res.writeHead(200, { 'Content-Type': 'text/html' });
+                            res.end(data);
+                        }
+                    });
+                }).listen(8080);
+                console.log('Server live on 8080');
+            `;
+            await myWebContainer.fs.writeFile('/server.js', serverCode);
+            
+            const serverProcess = await myWebContainer.spawn('node', ['server.js']);
+            
+            // Listen for the server URL
+            myWebContainer.on('server-ready', (port, url) => {
+                log(`Server ready! URL: ${url}`);
+                const preview = document.getElementById('myPreview');
+                preview.src = url;
+                preview.style.display = 'block';
+            });
+        };
+
+        async function myInit() {
+            if (!window.crossOriginIsolated) {
+                log("ERROR: Not Cross-Origin Isolated!");
+                return;
+            }
+            myWebContainer = await WebContainer.boot();
+            
+            // Enable all buttons
+            ['btnPage1', 'btnPage2', 'btnIndex', 'btnRun'].forEach(id => {
+                document.getElementById(id).disabled = false;
+            });
+            document.getElementById('termData').innerText = "WebContainer Ready.";
+        }
+        myInit();
+    </script>
+</body>
+</html>
